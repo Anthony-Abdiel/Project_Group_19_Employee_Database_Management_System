@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "/api";
 
 function EmployeeList() {
   const [employees, setEmployees] = useState([]);
@@ -16,6 +16,7 @@ function EmployeeList() {
           throw new Error("Failed to fetch employees");
         }
         const data = await res.json();
+        console.log(data);
         setEmployees(data); // [{ id, name, phone_number, email, salary }, ...]
       } catch (err) {
         setError(err.message || "Something went wrong");

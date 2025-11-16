@@ -36,12 +36,15 @@ app.use(express.json());
 
 //GET
 app.get("/employees", async (req, res)=>{
+    console.log("Recieved Request for Employees List.");
 
     try {
         //query the database for the employees
         const result = await db.query(`
             SELECT employee_id AS id, name, phone_number, email, salary FROM employees
             `);
+        
+        console.log(result.rows);
         
         //send the response as JSON data
         res.json(result.rows);
