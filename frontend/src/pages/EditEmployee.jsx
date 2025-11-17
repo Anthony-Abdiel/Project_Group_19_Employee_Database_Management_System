@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import EmployeeForm from "../../components/EmployeeForm";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "/api";
 
 function EditEmployee() {
   const { id } = useParams(); // from /employees/:id/edit
