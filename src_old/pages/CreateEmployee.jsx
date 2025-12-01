@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import EmployeeForm from "../components/EmployeeForm";
+import EmployeeForm from "../../components/EmployeeForm";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "/api";
 
 function CreateEmployee() {
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
   const navigate = useNavigate();
 
   const handleCreate = async (formData) => {
     try {
-      setError("");
+      setError(null);
       setSuccessMsg("");
 
       const res = await fetch(`${API_BASE_URL}/employees`, {
@@ -19,23 +19,28 @@ function CreateEmployee() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData), // { name, phone, email, salary }
       });
 
       if (!res.ok) {
-        throw new Error("Failed to create employee");
+        let message = "Failed to create employee";
+        try {
+          const text = await res.text();
+          if (text) message = text;
+        } catch {}
+        throw new Error(message);
       }
 
       setSuccessMsg("Employee created successfully!");
       navigate("/employees");
     } catch (err) {
-      setError(err.message || "Error creating employee");
+      setError(err.message || "Something went wrong");
     }
   };
 
   return (
     <div>
-      <h1>Create Employee</h1>
+      <h1>Add New Employee</h1>
       {error && <p style={{ color: "red" }}>{error}</p>}
       {successMsg && <p style={{ color: "green" }}>{successMsg}</p>}
 
