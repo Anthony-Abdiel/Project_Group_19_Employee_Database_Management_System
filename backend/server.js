@@ -30,7 +30,9 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = 3000;
 
-//Settihg up middleware
+//Setting up middleware --------------------------------------------------------
+
+
 //using JSON format for react compatability
 app.use(express.json());
 
@@ -49,7 +51,7 @@ app.use(
 );
 
 // custom session verification middleware
-function isLoggedIn(req, res, next) {
+function requireLogin(req, res, next) {
     if(!req.session.user) {
         return res.status(401).send("Not Authenticated!");
     }
@@ -57,9 +59,17 @@ function isLoggedIn(req, res, next) {
     next();
 }
 
+function requireAdmin(req, res, next) {
+    if(!req.session.user || req.session.user.role !== "admin" ) {
+        res.status(401).json({error: "Admin Privilleges Required"});
+    }
+
+    next();
+}
+
 //routes -----------------------------------------------------------------------
 
-//GET
+//GET - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 app.get("/employees", async (req, res)=>{
     console.log("Recieved Request for Employees List.");
 
@@ -84,8 +94,21 @@ app.get("/employees", async (req, res)=>{
     }
 });
 
+//route for user info (Lets the front end know if the user is logged in, and 
+// with what privilleges)
+app.get("/me", requireLogin, async(req, res)=>{
+    //return the username and role
+    res.json({
+        name: req.session.user.name,
+        role: req.session.user.role
+    })
+});
 
-//PUT                                               NOTE: AUTH NOT YET IMPLEMENTED
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+//PUT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -                                               
+// NOTE: AUTH NOT YET IMPLEMENTED
 app.put("/employee/:id", async (req, res)=>{
     
     // save the data from the put request into variables
@@ -121,8 +144,9 @@ app.put("/employee/:id", async (req, res)=>{
         res.status(500).send("Error Updating Employee");
     }
 });
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-//POST                                                    
+//POST- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 app.post("/employees", async (req, res)=>{
 
     //save the employee information as variables
@@ -188,9 +212,8 @@ app.post("/login", async (req, res)=>{
 
     //save user info on the session: Name, Role, email
     req.session.user = {
-        id: user_id,
+        name: user.username,
         role: user.role,
-        email: user.email
     };
 
     //return success:true json
@@ -200,10 +223,18 @@ app.post("/login", async (req, res)=>{
 //TODO: Logout POST route
 app.post("/logout", async (req, res)=>{
 
-
+    req.session.destroy(err => {
+        if(err) {
+            console.error("Error Destroying Session: ", err);
+            return res.status(500).json({message: "Logout Failed."});
+        }
+        res.clearCookie("connect.sid");
+        res.json({message: "Logged out successfully."});
+    });
 });
 
-//DELETE                                            NOTE: AUTH NOT YET IMPLEMENTED
+//DELETE- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+// NOTE: AUTH NOT YET IMPLEMENTED
 app.delete("/employee/:id", async (req, res)=>{
 
     //saving the specified id as a number, log the deleting request
@@ -237,6 +268,6 @@ app.delete("/employee/:id", async (req, res)=>{
     }
 
 });
-
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 app.listen( PORT, ()=>{console.log("listening on Port: " + PORT)} );
