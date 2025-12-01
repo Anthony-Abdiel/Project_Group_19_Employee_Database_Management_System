@@ -16,6 +16,8 @@ db.connect();
 import express from "express";
 import path from "path";
 import bcrypt from "bcrypt";
+import cors from "cors";
+import session from "express-session";
 import {fileURLToPath } from "url";
 import {dirname} from "path";
 
@@ -28,11 +30,34 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = 3000;
 
-//specifying middleware
+//Settihg up middleware
+//using JSON format for react compatability
 app.use(express.json());
 
+//using express sessions for session management
+app.use(
+    session({
+        secret: "secret-key",
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            httpOnly: true,
+            secure: false, //CHANGING TO TRUE FOR PRODUCTION CODE
+            maxAge: 1000 * 60 * 60 * 24,
+        },
+    })
+);
 
-//routes --------------------------------------------------------------
+// custom session verification middleware
+function isLoggedIn(req, res, next) {
+    if(!req.session.user) {
+        return res.status(401).send("Not Authenticated!");
+    }
+
+    next();
+}
+
+//routes -----------------------------------------------------------------------
 
 //GET
 app.get("/employees", async (req, res)=>{
@@ -89,7 +114,7 @@ app.put("/employee/:id", async (req, res)=>{
         console.log("Employee Updated");
         res.json({success:true, employee: result.rows[0] });
 
-    //catch anyerrors
+    //catch any errors
     } catch(err) {
         //log the error and send the status code
         console.error(err);
@@ -123,6 +148,58 @@ app.post("/employees", async (req, res)=>{
         console.error(err);
         res.status(500).send("Error Creating Employee");
     }
+
+});
+
+//TODO: New User Post Req
+app.post("/signup", async (req, res)=>{
+
+
+
+});
+
+
+//TODO: Login POST route
+app.post("/login", async (req, res)=>{
+
+    //extract user_id and password
+    const {user_id, password} = req.body;
+
+    //query for the user
+    result = db.query(
+        "SELECT * FROM users WHERE user_id = $1",
+        [user_id]
+    );
+
+    const user = result.rows[0];
+
+    //if the user isn't found, either invalid creds or not in DB, send status
+    if(!user){
+        return res.status(401).json({error: "Invalid Credentials!"});
+    }
+
+    //if user is found, attempt a match with the db password
+    const match = await bcrypt.compare(password, user.password_hash);
+
+    if(!match) {
+        //sending error status if the passwords don't match
+        return res.status(401).json({error: "Invalid Credentials!"});
+    }
+
+    //save user info on the session: Name, Role, email
+    req.session.user = {
+        id: user_id,
+        role: user.role,
+        email: user.email
+    };
+
+    //return success:true json
+    res.json({success: true});
+});
+
+//TODO: Logout POST route
+app.post("/logout", async (req, res)=>{
+
 
 });
 
