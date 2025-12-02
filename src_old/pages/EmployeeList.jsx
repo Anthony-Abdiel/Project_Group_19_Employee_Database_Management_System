@@ -11,7 +11,9 @@ function EmployeeList() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/employees`);
+        const res = await fetch(`${API_BASE_URL}/employees`, {
+          credentials: "include"
+        });
         if (!res.ok) {
           throw new Error("Failed to fetch employees");
         }

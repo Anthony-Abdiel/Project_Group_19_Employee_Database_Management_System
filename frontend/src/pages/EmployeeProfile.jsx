@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import EmployeeForm from "../components/EmployeeForm";
 import { useUser } from "../UserContext";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "/api";
 
 function EmployeeProfile() {
   const { currentUser } = useUser();
@@ -15,6 +15,7 @@ function EmployeeProfile() {
   const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
+    console.log(`IN EMPLOYEE FORM!      Current User: ${currentUser.role} `)
     if (!currentUser || currentUser.role !== "employee") {
       navigate("/login");
       return;
@@ -25,7 +26,9 @@ function EmployeeProfile() {
         setLoadError("");
         setLoading(true);
 
-        const res = await fetch(`${API_BASE_URL}/employees`);
+        const res = await fetch(`${API_BASE_URL}/employees`, {
+          credentials: 'include',
+        });
         if (!res.ok) {
           throw new Error("Failed to load employees");
         }

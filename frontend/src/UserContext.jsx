@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const UserContext = createContext(null);
+const API_BASE_URL = "/api";
 
 export function UserProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
@@ -11,13 +12,14 @@ export function UserProvider({ children }) {
     async function fetchUser() {
       
       try {
-        const response = await fetch("/me", {
+        const response = await fetch(`${API_BASE_URL}/me`, {
         method: "GET",
         credentials: "include" 
         });
 
         if(!response.ok) {
           //user is not logged in 
+          console.log("Detected New User!!")
           setCurrentUser(null);
 
         } else {
@@ -39,7 +41,7 @@ export function UserProvider({ children }) {
   const login = async (credentials) => {
 
     try {
-      const response = await fetch("/login", {
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: "POST",
         credentials: "include",
         headers: {"Content-Type":"application/json"},
@@ -53,26 +55,26 @@ export function UserProvider({ children }) {
         const user = await response.json();
 
         setCurrentUser(user);
-        return true;
+        return user;
 
       } else {
         console.log("Login Unsuccessful");
         setCurrentUser(null);
-        return false;
+        return null;
       }
 
       
     } catch(err) {  
       console.error("Error loggin in: ", err);
       setCurrentUser(null);
-      return false;
+      return null;
     }    
   };
 
   const logout = async () => {
 
     try {
-      const response = await fetch("/logout", {
+      const response = await fetch(`${API_BASE_URL}/logout`, {
         method: "POST",
         credentials: "include"
       });

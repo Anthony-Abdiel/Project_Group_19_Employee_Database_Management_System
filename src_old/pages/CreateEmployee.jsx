@@ -16,6 +16,7 @@ function CreateEmployee() {
 
       const res = await fetch(`${API_BASE_URL}/employees`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },

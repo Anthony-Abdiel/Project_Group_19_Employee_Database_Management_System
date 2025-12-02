@@ -9,7 +9,7 @@ function EmployeeForm({ initialData, onSubmit, submitLabel }) {
   useEffect(() => {
     if (initialData) {
       setName(initialData.name || "");
-      setPhoneNumber(initialData.phone_number || "");
+      setPhoneNumber(initialData.phone || "");
       setEmail(initialData.email || "");
       setSalary(initialData.salary ?? "");
     }
@@ -19,7 +19,7 @@ function EmployeeForm({ initialData, onSubmit, submitLabel }) {
     e.preventDefault();
     onSubmit({
       name,
-      phone_number: phoneNumber,
+      phone: phoneNumber,
       email,
       salary: Number(salary),
     });

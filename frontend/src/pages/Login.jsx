@@ -4,13 +4,16 @@ import { useUser } from "../UserContext";
 
 function Login() {
   const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
   const [employeeId, setEmployeeId] = useState("");
   const [role, setRole] = useState("employee");
   const [error, setError] = useState("");
-  const { login } = useUser();
+  const { currentUser, login } = useUser();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
+    console.log("In Handle Submit!");
+
     e.preventDefault();
     setError("");
 
@@ -18,22 +21,40 @@ function Login() {
       setError("Name is required.");
       return;
     }
-    if (role === "employee" && !employeeId.trim()) {
+    if (!password) {
       setError("Employee ID is required for employee login.");
       return;
     }
 
-    const user = {
-      name: name.trim(),
-      role,
-      id: role === "employee" ? Number(employeeId) : null,
+    const credentials = {
+      username: name.trim(),
+      password: password
     };
 
-    login(user);
+    // const response = await fetch("/login", {
+    //   method: "POST",
+    //   credentials: "include",
+    //   headers: {"Content-Type":"application/json"},
+    //   body: JSON.stringify(credentials)
+    // });
 
-    if (role === "admin") {
+    const user = await login(credentials);
+
+    if( user !== null ) {
+      console.log("Login Successful");
+    }
+    else {
+      console.log("Login Failed");
+      return;
+    }
+
+    console.log(`Determining role!....... ${user.role}`);
+
+    if (user.role === "admin") {
+      console.log("Navigating to employees!");
       navigate("/employees");
     } else {
+      console.log("Navigating to profile!");
       navigate("/profile");
     }
   };
@@ -46,7 +67,7 @@ function Login() {
       <form onSubmit={handleSubmit}>
         <div>
           <label>
-            Name
+            UserName
             <br />
             <input
               type="text"
@@ -58,6 +79,18 @@ function Login() {
         </div>
 
         <div>
+          <label>
+            Password
+            <br />
+            <input
+              type="password"
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
+        </div>
+
+        {/* <div>
           <label>
             Role
             <br />
@@ -80,7 +113,7 @@ function Login() {
               />
             </label>
           </div>
-        )}
+        )} */}
 
         <button type="submit">Log In</button>
       </form>
