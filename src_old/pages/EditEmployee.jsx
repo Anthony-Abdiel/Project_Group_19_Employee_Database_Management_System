@@ -1,34 +1,34 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import EmployeeForm from "../components/EmployeeForm";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import EmployeeForm from "../../components/EmployeeForm";
 
 const API_BASE_URL = "/api";
 
 function EditEmployee() {
-  const { id } = useParams();
+  const { id } = useParams(); // from /employees/:id/edit
   const navigate = useNavigate();
+
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
-  const [saveError, setSaveError] = useState("");
+  const [loadError, setLoadError] = useState(null);
+  const [saveError, setSaveError] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
 
+  // Load current employee data
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
-        setLoadError("");
-        setLoading(true);
-
         const res = await fetch(`${API_BASE_URL}/employees`);
         if (!res.ok) {
-          throw new Error("Failed to fetch employees");
+          throw new Error("Failed to load employees");
         }
         const data = await res.json();
+
         const numericId = Number(id);
         const found = data.find((emp) => emp.id === numericId);
 
         if (!found) {
-          setLoadError("Employee not found.");
+          setLoadError("Employee not found");
         } else {
           setEmployee(found);
         }
@@ -39,12 +39,14 @@ function EditEmployee() {
       }
     };
 
-    fetchEmployee();
+    if (id) {
+      fetchEmployee();
+    }
   }, [id]);
 
   const handleUpdate = async (formData) => {
     try {
-      setSaveError("");
+      setSaveError(null);
       setSuccessMsg("");
 
       const res = await fetch(`${API_BASE_URL}/employee/${id}`, {
@@ -52,11 +54,16 @@ function EditEmployee() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData), // { name, phone, email, salary }
       });
 
       if (!res.ok) {
-        throw new Error("Failed to update employee");
+        let message = "Failed to update employee";
+        try {
+          const text = await res.text();
+          if (text) message = text;
+        } catch {}
+        throw new Error(message);
       }
 
       setSuccessMsg("Employee updated successfully!");
@@ -72,7 +79,7 @@ function EditEmployee() {
 
   return (
     <div>
-      <h1>Edit Employee</h1>
+      <h1>Edit Employee #{employee.id}</h1>
       {saveError && <p style={{ color: "red" }}>{saveError}</p>}
       {successMsg && <p style={{ color: "green" }}>{successMsg}</p>}
 
