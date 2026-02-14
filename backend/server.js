@@ -14,7 +14,6 @@ db.connect();
 //server file
 
 import express from "express";
-import path from "path";
 import bcrypt from "bcrypt";
 import cors from "cors";
 import session from "express-session";
